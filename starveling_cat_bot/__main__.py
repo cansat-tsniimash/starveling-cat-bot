@@ -3,21 +3,29 @@ import signal
 import logging
 import sys
 import os
+import json
+import argparse
 
 from starveling_cat_bot.bot import Bot
 
+
 _log = logging.getLogger("starveling_cat_bot")
 
-DISCORD_TOKEN = os.environ.get("DISCORD_BOT_TOKE")
+DISCORD_TOKEN = os.environ.get("DISCORD_BOT_TOKEN")
 
 
-async def main():
-    config = {
-        "interface": "127.0.0.1",
-        "port": 8080,
+async def main(config_path: str):
+    _log.info("using config file %s", config_path)
+    with open(config_path, "r") as stream:
+        config = json.load(stream)
+
+    # Пока в него не попали секреты можно напечатать
+    _log.info("loaded config: %s", config)
+    config.update({
         "github_secret": None,
         "discord_secret": DISCORD_TOKEN
-    }
+    })
+
     handler = Bot(config)
     await handler.setup()
     await handler.start()
@@ -57,6 +65,11 @@ async def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Starveling Cat Bot", add_help=True)
+    parser.add_argument("-c", "--config", required=True, nargs='?', dest='config', type=str)
+    argv = sys.argv[1:]
+    args = parser.parse_args(argv)
+
     log_format = "%(asctime)s %(name)s %(levelname)s %(message)s"
     logging.basicConfig(stream=sys.stderr, level=logging.INFO, format=log_format)
-    asyncio.run(main())
+    asyncio.run(main(args.config))

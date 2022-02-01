@@ -16,7 +16,7 @@ class Bot:
         self.site = None
 
     def _init_discord(self):
-        self.discord_client = DiscordClient()
+        self.discord_client = DiscordClient(self.config)
 
     def __init__(self, config):
         self.config = config
@@ -46,7 +46,13 @@ class Bot:
         await self.aio_runner.cleanup()
 
     async def handle_payload(self, request) -> web.Response:
-        data = await request.json()
-        _log.info("got push payload: %s", data)
-        await self.discord_client.process_push_hook(data)
-        return web.Response()
+        try:
+            data = await request.json()
+            _log.info("got push payload: %s", data)
+            await self.discord_client.process_push_hook(data)
+            return web.Response()
+        except Exception as e:
+            _log.exception("Terrible error")
+            await self.discord_client.post_error(str(e))
+        finally:
+            return web.HTTPInternalServerError()

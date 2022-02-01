@@ -30,10 +30,10 @@ class DiscordClient(Client):
 
         return retval
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, config, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.target_channel_name = "ботовник"
+        self.target_channel_name = config["target_channel"]
         self.channels_to_post = []  # type: typing.List[TextChannel]
 
     async def on_ready(self):
@@ -44,6 +44,9 @@ class DiscordClient(Client):
             if channel.name == self.target_channel_name:
                 self.channels_to_post.append(channel)
                 _log.info("selected channel %s(%s)", channel.name, channel.id)
+
+            if not self.channels_to_post:
+                _log.error("There is not a single channel %s" % self.target_channel_name)
 
     async def process_push_hook(self, payload):
         sender_name = payload["sender"]["login"]
@@ -66,3 +69,7 @@ class DiscordClient(Client):
             embed = discord.Embed(title="Новый пуш", description=content)
             embed.set_author(name=sender_name, url=sender_url, icon_url=sender_pic)
             await channel.send(embed=embed)
+
+    async def post_error(self, text: str):
+        for channel in self.channels_to_post:
+            await channel.send(content="Я сломался, помогите. " + text)

@@ -1,0 +1,7 @@
+{
+  "interface": "127.0.0.1",
+  "port": 8080,
+  "github_secret": null,
+  "discord_secret": null,
+  "target_channel": "кошкин-дом"
+}
