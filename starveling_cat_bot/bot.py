@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 from aiohttp import web
 
 from starveling_cat_bot.discord_client import DiscordClient
@@ -47,12 +48,19 @@ class Bot:
 
     async def handle_payload(self, request) -> web.Response:
         try:
+            _log.info("headers: %s", request.headers)
+            push_type = request.headers.get('X-GitHub-Event', None)
+            if push_type != "push":
+                _log.info("This hook is not push hood. Dropping it")
+                return web.Response()
+
             data = await request.json()
             _log.info("got push payload: %s", data)
             await self.discord_client.process_push_hook(data)
             return web.Response()
+
         except Exception as e:
-            _log.exception("Terrible error")
-            await self.discord_client.post_error(str(e))
-        finally:
-            return web.HTTPInternalServerError()
+            _log.exception("Terrible error: %s", e)
+            text = traceback.format_exception(e)
+            await self.discord_client.post_error(''.join(text))
+            raise

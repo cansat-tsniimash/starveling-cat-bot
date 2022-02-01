@@ -18,7 +18,7 @@ class DiscordClient(Client):
 
     def _format_push_commits(self, github_payload: dict) -> typing.List[CommitInfo]:
         retval = []
-        for commit in itertools.chain([github_payload["head_commit"]], github_payload["commits"]):
+        for commit in github_payload["commits"]:
             if not commit:
                 continue
 
@@ -58,9 +58,12 @@ class DiscordClient(Client):
 
         content = f"{sender_name} запушил в репу {repo_name} количество коммитов: {len(commit_infos)}"
         content += "\n"
-        content += "коммиты:\n"
-        for info in commit_infos:
-            content += f"* [{info.hash[0:7]}]({info.url}) - {info.message}\n"
+        if commit_infos:
+            content += "коммиты:\n"
+            for info in commit_infos:
+                content += f"* [{info.hash[0:7]}]({info.url}) - {info.message}\n"
+        else:
+            content += "(что-то тут нет новых коммитов, он бранч пушил чтоли? Вы там разберитесь)"
 
         content += "\n"
         content += f"[Изменения]({compare_url})"
