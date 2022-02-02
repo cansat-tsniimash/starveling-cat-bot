@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import traceback
+import sys
 from aiohttp import web
 
 from starveling_cat_bot.discord_client import DiscordClient
@@ -51,7 +52,7 @@ class Bot:
             _log.info("headers: %s", request.headers)
             push_type = request.headers.get('X-GitHub-Event', None)
             if push_type != "push":
-                _log.info("This hook is not push hood. Dropping it")
+                _log.info("This hook is not push hook. Dropping it")
                 return web.Response()
 
             data = await request.json()
@@ -61,6 +62,6 @@ class Bot:
 
         except Exception as e:
             _log.exception("Terrible error: %s", e)
-            text = traceback.format_exception(e)
+            text = traceback.format_exception(*sys.exc_info())
             await self.discord_client.post_error(''.join(text))
             raise
