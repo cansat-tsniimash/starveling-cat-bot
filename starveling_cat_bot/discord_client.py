@@ -45,8 +45,8 @@ class DiscordClient(Client):
                 self.channels_to_post.append(channel)
                 _log.info("selected channel %s(%s)", channel.name, channel.id)
 
-            if not self.channels_to_post:
-                _log.error("There is not a single channel %s" % self.target_channel_name)
+        if not self.channels_to_post:
+            _log.error("There is not a single channel %s" % self.target_channel_name)
 
     async def process_push_hook(self, payload):
         sender_name = payload["sender"]["login"]
