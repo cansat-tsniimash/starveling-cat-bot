@@ -56,7 +56,7 @@ class DiscordClient(Client):
         commit_infos = self._format_push_commits(payload)
         compare_url = payload["compare"]
 
-        content = f"{sender_name} запушил в репу {repo_name} количество коммитов: {len(commit_infos)}"
+        content = f"{sender_name} запушил в репу {repo_name}:"
         content += "\n"
         if commit_infos:
             content += "коммиты:\n"
