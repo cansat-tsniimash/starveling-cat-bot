@@ -1,12 +1,11 @@
 import logging
-import itertools
 import collections
 import typing
 
 import discord
 from discord import Client
 from discord.abc import GuildChannel
-from discord import TextChannel
+from discord import TextChannel, Guild
 
 
 _log = logging.getLogger(__name__)
@@ -33,30 +32,38 @@ class DiscordClient(Client):
     def __init__(self, config, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.target_channel_name = config["target_channel"]
-        self.channels_to_post = []  # type: typing.List[TextChannel]
+        self.channels_to_post = []  # type: typing.List[GuildChannel]
 
     async def on_ready(self):
-        for channel in self.get_all_channels():  # type: typing.Iterable[GuildChannel]
-            if not isinstance(channel, TextChannel):
-                continue
 
-            if channel.name == self.target_channel_name:
-                self.channels_to_post.append(channel)
-                _log.info("selected channel %s(%s)", channel.name, channel.id)
+        # А то бывает ready случается несколько раз
+        self.channels_to_post.clear()
+
+        for guild in self.guilds:  # type: Guild
+            for channel in guild.channels:  # type: GuildChannel
+                if not isinstance(channel, TextChannel):
+                    continue
+
+                # channel.permissions_for(self.user)
+                permissions = channel.permissions_for(guild.me)
+                if permissions.send_messages:
+                    _log.info("adding spam channel \"%s\" on server \"%s\"", channel, guild)
+                    self.channels_to_post.append(channel)
+                    break
 
         if not self.channels_to_post:
-            _log.error("There is not a single channel %s" % self.target_channel_name)
+            _log.error("There is not a single channel to post!")
 
     async def process_push_hook(self, payload):
         sender_name = payload["sender"]["login"]
         sender_url = payload["sender"]["html_url"]
         sender_pic = payload["sender"]["avatar_url"]
         repo_name = payload["repository"]["full_name"]
+        repo_url = payload["repository"]["html_url"]
         commit_infos = self._format_push_commits(payload)
         compare_url = payload["compare"]
 
-        content = f"запушил в репу {repo_name}:"
+        content = f"в [{repo_name}]({repo_url}):"
         content += "\n"
         if commit_infos:
             content += "коммиты:\n"
@@ -68,11 +75,13 @@ class DiscordClient(Client):
         content += "\n"
         content += f"[Изменения]({compare_url})"
 
+        embed = discord.Embed(title="Запушил", description=content)
+        embed.set_author(name=sender_name, url=sender_url, icon_url=sender_pic)
         for channel in self.channels_to_post:
-            embed = discord.Embed(title="Новый пуш", description=content)
-            embed.set_author(name=sender_name, url=sender_url, icon_url=sender_pic)
+            _log.info("pushing message to %s", channel)
             await channel.send(embed=embed)
 
     async def post_error(self, text: str):
         for channel in self.channels_to_post:
+            _log.info("pushing error message to %s", channel)
             await channel.send(content="Я сломался, помогите. " + text)
