@@ -14,6 +14,7 @@ _log = logging.getLogger("starveling_cat_bot")
 DISCORD_TOKEN = os.environ.get("DISCORD_BOT_TOKEN")
 
 
+# noinspection PyShadowingNames
 async def main(config_path: str):
     _log.info("using config file %s", config_path)
     with open(config_path, "r") as stream:
@@ -57,7 +58,7 @@ async def main(config_path: str):
     tasks_count = 0
     for task in tasks:
         task.cancel()
-        tasks_count +=1
+        tasks_count += 1
 
     _log.info(f"Cancelling {tasks_count} outstanding tasks")
     await asyncio.gather(*tasks, return_exceptions=True)

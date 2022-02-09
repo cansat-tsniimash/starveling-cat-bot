@@ -2,9 +2,13 @@ import logging
 import collections
 import typing
 
+# noinspection PyPackageRequirements
 import discord
+# noinspection PyPackageRequirements
 from discord import Client
+# noinspection PyPackageRequirements
 from discord.abc import GuildChannel
+# noinspection PyPackageRequirements
 from discord import TextChannel, Guild
 
 
@@ -15,7 +19,8 @@ CommitInfo = collections.namedtuple("CommitInfo", ["message", "hash", "url"])
 
 class DiscordClient(Client):
 
-    def _format_push_commits(self, github_payload: dict) -> typing.List[CommitInfo]:
+    @staticmethod
+    def _format_push_commits(github_payload: dict) -> typing.List[CommitInfo]:
         retval = []
         for commit in github_payload["commits"]:
             if not commit:
@@ -29,10 +34,11 @@ class DiscordClient(Client):
 
         return retval
 
+    # noinspection PyUnusedLocal
     def __init__(self, config, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.channels_to_post = []  # type: typing.List[GuildChannel]
+        self.channels_to_post = []  # type: typing.List[TextChannel]
 
     async def on_ready(self):
 

@@ -31,6 +31,7 @@ class Bot:
         self._init_discord()
 
         self.discord_task = None
+        self.site = None
 
     async def setup(self):
         await self.aio_runner.setup()
