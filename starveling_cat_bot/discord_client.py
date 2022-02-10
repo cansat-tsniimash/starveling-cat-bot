@@ -70,7 +70,7 @@ class DiscordClient(Client):
         compare_url = payload["compare"]
 
         content = f"{sender_name} запушил в [{repo_name}]({repo_url}):"
-        content += "\n"
+        content += "\n\n"
         if commit_infos:
             content += "коммиты:\n"
             for info in commit_infos:
