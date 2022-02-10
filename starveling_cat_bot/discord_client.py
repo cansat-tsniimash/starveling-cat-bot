@@ -69,7 +69,7 @@ class DiscordClient(Client):
         commit_infos = self._format_push_commits(payload)
         compare_url = payload["compare"]
 
-        content = f"в [{repo_name}]({repo_url}):"
+        content = f"{sender_name} запушил в [{repo_name}]({repo_url}):"
         content += "\n"
         if commit_infos:
             content += "коммиты:\n"
@@ -81,7 +81,7 @@ class DiscordClient(Client):
         content += "\n"
         content += f"[Изменения]({compare_url})"
 
-        embed = discord.Embed(title="Запушил", description=content)
+        embed = discord.Embed(description=content)
         embed.set_author(name=sender_name, url=sender_url, icon_url=sender_pic)
         for channel in self.channels_to_post:
             _log.info("pushing message to %s", channel)
